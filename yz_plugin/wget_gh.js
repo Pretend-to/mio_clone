@@ -31,6 +31,13 @@ export class Mio extends plugin {
     return `${formattedSize} ${unit}`;
   }
 
+  async trans_time(utcDateString){    
+    const utcDate = new Date(utcDateString);
+    const options = { timeZone: "Asia/Shanghai", year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    const beijingDate = utcDate.toLocaleString("zh-CN", options);
+    return beijingDate;
+  }
+
   async wget_gh(e) {
     // console.log(e.msg);
     let GitHuburl = e.msg.replace(/^clone\s*(https?:\/\/.*)/g, "$1");
@@ -47,9 +54,11 @@ export class Mio extends plugin {
 
       if (data.size) {
         
+        const created_time = await this.trans_time(data.created_at);
+        const pushed_time = await this.trans_time(data.pushed_at);
         const filesize = await this.get_size(data.size);
 
-        e.reply(`收到项目克隆请求，开始克隆!\n项目信息:\n项目名称:${data.name}\n项目作者:${data.owner.login}\n项目大小:${filesize}\n创建时间:${data.created_at}\n最近更新:${data.pushed_at}\n当前有 ${data.stargazers_count} 个人⭐了这个项目`);
+        e.reply(`收到项目克隆请求，开始克隆!\n项目信息:\n项目名称:${data.name}\n项目作者:${data.owner.login}\n项目大小:${filesize}\n创建时间:${created_time}\n最近更新:${pushed_time}\n当前有 ${data.stargazers_count} 个人⭐了这个项目`);
         e.reply(`克隆进行中......`);
 
       } else {
@@ -60,7 +69,7 @@ export class Mio extends plugin {
       e.reply('连接api接口失败！错误原因：' + error);
     }
 
-    e.reply(segment.image(`https://opengraph.githubassets.com/Pretend-to/${path}`))
+    //e.reply(segment.image(`https://opengraph.githubassets.com/Pretend-to/${path}`))
 
     try {
       const startTime = new Date().getTime(); // 获取开始时间
@@ -72,7 +81,7 @@ export class Mio extends plugin {
         const endTime = new Date().getTime(); // 获取结束时间
         const clonetime = (endTime - startTime) / 1000; // 计算耗时，单位为秒
 
-        e.reply(`克隆完成!耗时${clonetime}秒。复制链接到浏览器即可加速下载，链接24h过期哦！下载链接：${data.downloadLink}`, false);
+        e.reply(`克隆完成!耗时${clonetime}秒。复制链接到浏览器即可加速下载,有效期24h。\n${data.downloadLink}`, false);
       } else {
         e.reply('连接api接口失败！错误原因：' + JSON.stringify(data));
       }
