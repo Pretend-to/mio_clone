@@ -81,11 +81,6 @@ async function saveGitHubProject(url) {
   const projectName = getProjectNameFromUrl(url);
   const localPath = `./projects/${projectName}_${timestamp}.zip`;
 
-  // 检查是否已存在具有相同项目名称的压缩包
-  const existingZipPath = getExistingZipPath(projectName);
-  if (existingZipPath) {
-    return existingZipPath;
-  }
 
   // 使用git clone命令克隆项目到本地
   await new Promise((resolve, reject) => {
@@ -125,15 +120,6 @@ function getProjectNameFromUrl(url) {
   return parts[parts.length - 1].replace('.git', '');
 }
 
-function getExistingZipPath(projectName) {
-  // 检查是否已存在具有相同项目名称的压缩包
-  const files = fs.readdirSync('./projects');
-  const existingZip = files.find((file) => file.startsWith(`${projectName}_`) && file.endsWith('.zip'));
-  if (existingZip) {
-    return `${existingZip}`;
-  }
-  return null;
-}
 
 function deleteProjectDirectory(path) {
   // 删除项目目录
