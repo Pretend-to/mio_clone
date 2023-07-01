@@ -59,14 +59,13 @@ export class Mio extends plugin {
         const filesize = await this.get_size(data.size);
 
         e.reply(`收到项目克隆请求，开始克隆!\n项目信息:\n项目名称:${data.name}\n项目作者:${data.owner.login}\n项目大小:${filesize}\n创建时间:${created_time}\n最近更新:${pushed_time}\n当前有 ${data.stargazers_count} 个人⭐了这个项目`);
-        e.reply(`克隆进行中......`);
 
       } else {
-        e.reply('连接api接口失败！错误原因：' + JSON.stringify(data));
+        e.reply('解析github项目失败！错误原因:\n' + JSON.stringify(data));
       }
     } catch (error) {
-      console.error('连接api接口失败！错误原因：', error);
-      e.reply('连接api接口失败！错误原因：' + error);
+      console.error('解析github项目失败！错误原因:\n', error);
+      e.reply('解析github项目失败！错误原因:\n' + error);
     }
 
     //e.reply(segment.image(`https://opengraph.githubassets.com/Pretend-to/${path}`))
@@ -75,6 +74,7 @@ export class Mio extends plugin {
       const startTime = new Date().getTime(); // 获取开始时间
 
       const response = await fetch(url);
+      e.reply(`克隆进行中......`);
       const data = await response.json();
 
       if (data.downloadLink) {
@@ -83,11 +83,11 @@ export class Mio extends plugin {
 
         e.reply(`克隆完成!耗时${clonetime}秒。复制链接到浏览器即可加速下载,有效期24h。\n${data.downloadLink}`, false);
       } else {
-        e.reply('连接api接口失败！错误原因：' + JSON.stringify(data));
+        e.reply('返回下载链接失败！错误原因：\n' + JSON.stringify(data));
       }
     } catch (error) {
       console.error('连接api接口失败！错误原因：', error);
-      e.reply('连接api接口失败！错误原因：' + error);
+      e.reply('返回下载链接失败！错误原因\n' + error);
     }
   }
 }
