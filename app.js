@@ -31,15 +31,6 @@ app.get('/download', async (req, res) => {
   }
 });
 
-app.get('/download/:path', (req, res) => {
-  const path = decodeURIComponent(req.params.path);
-
-  // 设置响应头为JSON格式
-  res.setHeader('Content-Type', 'application/json');
-
-  // 返回JSON文件
-  res.sendFile(path);
-});
 
 function isGitHubUrl(url) {
   // 检查URL是否是GitHub项目链接的逻辑，这里简化为以'https://github.com/'开头即可
@@ -80,11 +71,11 @@ async function saveGitHubProject(url) {
   const timestamp = Date.now();
   const projectName = getProjectNameFromUrl(url);
   const localPath = `./projects/${projectName}_${timestamp}.zip`;
-
+  const pure_url = getPureAddress(url);
 
   // 使用git clone命令克隆项目到本地
   await new Promise((resolve, reject) => {
-    exec(`git clone ${url} ./projects/${projectName}_${timestamp}`, (error) => {
+    exec(`git clone ${pure_url} ./projects/${projectName}_${timestamp}`, (error) => {
       if (error) {
         reject(error);
       } else {
@@ -112,6 +103,18 @@ async function saveGitHubProject(url) {
 
   let filename = `${projectName}_${timestamp}.zip`
   return filename;
+}
+
+function getPureAddress(url) {
+  if (url.startsWith("https://")) {
+      // 去掉链接中的 "https://" 部分
+      url = url.replace("https://", "");
+  }
+  // 从GitHub仓库链接中提取用户名和仓库名称
+  const parts = url.split('/');
+  const repositoryName = parts[parts.length - (parts.length - 2)].replace('.git', '');
+  const userName = parts[parts.length - (parts.length - 1)];
+  return `https://github.com/${userName}/${repositoryName}`;
 }
 
 function getProjectNameFromUrl(url) {
