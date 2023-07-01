@@ -84,9 +84,9 @@ export class Mio extends plugin {
 
     try {
       const startTime = new Date().getTime(); // 获取开始时间
-
-      const response = await fetch(url);
       e.reply(`克隆进行中......`);
+      const response = await fetch(url);
+      
       const data = await response.json();
 
       if (data.downloadLink) {
