@@ -86,8 +86,10 @@ export class Mio extends plugin {
       const startTime = new Date().getTime(); // 获取开始时间
       //e.reply(`克隆进行中......`);
       const response = await fetch(url);
-      
+      console.log(response);
       const data = await response.json();
+
+
 
       if (data.downloadLink) {
         const zipsize = await this.get_size(data.filesize);
