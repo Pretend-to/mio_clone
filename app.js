@@ -12,6 +12,19 @@ cron.schedule('0 0 * * *', () => {
   clearAllZipFiles();
 });
 
+
+app.get('/download/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filePath = `./projects/${filename}`;
+
+  res.download(filePath, (err) => {
+    if (err) {
+      console.error('下载文件时发生错误：', err);
+      res.status(500).send('下载文件时发生错误');
+    }
+  });
+});
+
 app.get('/download', async (req, res) => {
   const url = req.query.url;
 
@@ -25,7 +38,7 @@ app.get('/download', async (req, res) => {
     const saveresult = await saveGitHubProject(url);
     const filesize = saveresult.fileSize;
     const filename = saveresult.filename;
-    const downloadLink = await makeDirectUrl(filename);
+    const downloadLink = await makeUrl(filename);
     res.json({ filesize, downloadLink });
   } catch (error) {
     console.error(error);
@@ -64,6 +77,12 @@ async function makeDirectUrl(filename) {
 
   const data = await response.json();
   const shortLink = data.data[0].pathLink;
+  return shortLink;
+}
+
+
+async function makeUrl(filename) {
+  const shortLink = `https://104.168.68.91:4099/download/${filename}`
   return shortLink;
 }
 
