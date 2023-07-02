@@ -75,6 +75,8 @@ async function saveGitHubProject(url) {
   const localPath = `./projects/${projectName}_${timestamp}.zip`;
   const pure_url = getPureAddress(url);
 
+  let re_json = {};
+
   // 使用git clone命令克隆项目到本地
   await new Promise((resolve, reject) => {
     exec(`git clone ${pure_url} ./projects/${projectName}_${timestamp}`, (error) => {
@@ -100,6 +102,7 @@ async function saveGitHubProject(url) {
         fileSize: fileSize
       };
       resolve(JSON.stringify(result));
+      re_json = result;
     });
     archive.on('error', reject);
   
@@ -107,8 +110,7 @@ async function saveGitHubProject(url) {
     archive.directory(`./projects/${projectName}_${timestamp}`, false);
     archive.finalize();
   });
-  
-  return result ;
+  return re_json ;
 }
 
 function getPureAddress(url) {
@@ -129,10 +131,9 @@ function getProjectNameFromUrl(url) {
   return parts[parts.length - 1].replace('.git', '');
 }
 
-
 function deleteProjectDirectory(path) {
   // 删除项目目录
-  fs.rmdirSync(path, { recursive: true });
+  fs.rmSync(path, { recursive: true });
 }
 
 function clearAllZipFiles() {
