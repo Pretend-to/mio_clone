@@ -59,13 +59,13 @@ app.get('/download/:filename', (req, res) => {
 
     const endTime = new Date(); // 记录结束时间
     const downloadTime = (endTime - startTime) / 1000; // 计算下载耗时（单位：秒）
-    const fileSize = fs.statSync(filePath).size; // 获取文件大小（单位：字节）
-    const downloadSpeed = fileSize / downloadTime; // 计算下载平均速度（单位：字节/秒）
+    const fileSize = (fs.statSync(filePath).size) / (1024); // 获取文件大小（单位：kb）
+    const downloadSpeed = fileSize / downloadTime; // 计算下载平均速度（单位：kb/秒）
 
     // 记录下载完成的日志
     console.log(`[${endTime}] IP 地址 ${ip} 下载文件 ${filename} 成功`);
     console.log(`下载耗时：${downloadTime} 秒`);
-    console.log(`下载平均速度：${downloadSpeed} 字节/秒`);
+    console.log(`下载平均速度：${downloadSpeed} kb/秒`);
   });
 });
 
