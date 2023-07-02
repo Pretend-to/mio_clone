@@ -28,7 +28,7 @@ export class Mio extends plugin {
   }
 
   async get_size(size){    
-    const units = ['KB', 'MB', 'GB', 'TB'];
+    const units = ['B','KB', 'MB', 'GB', 'TB'];
 
     let unitIndex = 0;
 
@@ -68,9 +68,9 @@ export class Mio extends plugin {
         
         const created_time = await this.trans_time(data.created_at);
         const pushed_time = await this.trans_time(data.pushed_at);
-        const filesize = await this.get_size(data.size);
 
-        e.reply(`收到项目克隆请求，开始克隆!\n项目信息:\n项目名称:${data.name}\n项目作者:${data.owner.login}\n项目大小:${filesize}\n创建时间:${created_time}\n最近更新:${pushed_time}\n当前有 ${data.stargazers_count} 个人⭐了这个项目`);
+
+        e.reply(`收到项目克隆请求，开始克隆!\n项目名称:${data.name}\n项目作者:${data.owner.login}\n项目描述:${data.description}:\n创建时间:${created_time}\n最近更新:${pushed_time}\n当前有 ${data.stargazers_count} 个人⭐了这个项目`);
 
       } else {
         e.reply('解析github项目失败！错误原因:\n' + JSON.stringify(data));
@@ -84,16 +84,17 @@ export class Mio extends plugin {
 
     try {
       const startTime = new Date().getTime(); // 获取开始时间
-      e.reply(`克隆进行中......`);
+      //e.reply(`克隆进行中......`);
       const response = await fetch(url);
       
       const data = await response.json();
 
       if (data.downloadLink) {
+        const zipsize = await this.get_size(data.filesize);
         const endTime = new Date().getTime(); // 获取结束时间
         const clonetime = (endTime - startTime) / 1000; // 计算耗时，单位为秒
 
-        e.reply(`克隆完成!耗时${clonetime}秒。复制链接到浏览器即可加速下载,有效期24h。\n${data.downloadLink}`, false);
+        e.reply(`克隆完成!文件大小${zipsize},耗时${clonetime}秒。复制链接到浏览器即可加速下载,有效期24h。\n${data.downloadLink}`, false);
       } else {
         e.reply('返回下载链接失败！错误原因：\n' + JSON.stringify(data));
       }

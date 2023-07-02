@@ -22,9 +22,11 @@ app.get('/download', async (req, res) => {
 
   try {
     // 保存GitHub项目到本地
-    const filename = await saveGitHubProject(url);
+    const saveresult = await saveGitHubProject(url);
+    const filesize = saveresult.fileSize;
+    const filename = saveresult.filename;
     const downloadLink = await makeDirectUrl(filename);
-    res.json({ downloadLink });
+    res.json({ filesize, downloadLink });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to save GitHub project' });
@@ -88,21 +90,25 @@ async function saveGitHubProject(url) {
   await new Promise((resolve, reject) => {
     const output = fs.createWriteStream(localPath);
     const archive = archiver('zip');
-
+  
     output.on('close', () => {
       // 删除源文件
       deleteProjectDirectory(`./projects/${projectName}_${timestamp}`);
-      resolve();
+      const fileSize = archive.pointer();
+      const result = {
+        filename: `${projectName}_${timestamp}.zip`,
+        fileSize: fileSize
+      };
+      resolve(JSON.stringify(result));
     });
     archive.on('error', reject);
-
+  
     archive.pipe(output);
     archive.directory(`./projects/${projectName}_${timestamp}`, false);
     archive.finalize();
   });
-
-  let filename = `${projectName}_${timestamp}.zip`
-  return filename;
+  
+  return result ;
 }
 
 function getPureAddress(url) {
