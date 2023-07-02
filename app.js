@@ -20,7 +20,7 @@ function logRequest(req, res, next) {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
   // 记录请求开始的日志
-  console.log(`[${new Date()}] IP 地址 ${ip} 发起了请求：${req.method} ${req.originalUrl}`);
+  console.log(`[${startTime}] IP 地址 ${ip} 发起了请求：${req.method} ${req.originalUrl}`);
 
   // 在响应结束后记录请求结束的日志
   res.on('finish', () => {
@@ -28,7 +28,7 @@ function logRequest(req, res, next) {
     const requestTime = (endTime - startTime) / 1000; // 计算请求耗时（单位：秒）
 
     // 记录请求完成的日志
-    console.log(`[${new Date()}] IP 地址 ${ip} 请求完成：${req.method} ${req.originalUrl}`);
+    console.log(`[${endTime}] IP 地址 ${ip} 请求完成：${req.method} ${req.originalUrl}`);
     console.log(`请求耗时：${requestTime} 秒`);
   });
 
@@ -38,7 +38,7 @@ function logRequest(req, res, next) {
 // 将中间件函数应用到所有路由
 app.use(logRequest);
 
-app.get('/download/:filename',  logRequest, (req, res) => {
+app.get('/download/:filename', (req, res) => {
   const filename = req.params.filename;
   const filePath = `./projects/${filename}`;
 
@@ -48,7 +48,7 @@ app.get('/download/:filename',  logRequest, (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
   // 记录下载开始的日志
-  console.log(`[${new Date()}] IP 地址 ${ip} 正在下载文件 ${filename}`);
+  console.log(`[${startTime}] IP 地址 ${ip} 正在下载文件 ${filename}`);
 
   res.download(filePath, (err) => {
     if (err) {
@@ -63,13 +63,13 @@ app.get('/download/:filename',  logRequest, (req, res) => {
     const downloadSpeed = fileSize / downloadTime; // 计算下载平均速度（单位：字节/秒）
 
     // 记录下载完成的日志
-    console.log(`[${new Date()}] IP 地址 ${ip} 下载文件 ${filename} 成功`);
+    console.log(`[${endTime}] IP 地址 ${ip} 下载文件 ${filename} 成功`);
     console.log(`下载耗时：${downloadTime} 秒`);
     console.log(`下载平均速度：${downloadSpeed} 字节/秒`);
   });
 });
 
-app.get('/download', logRequest, async (req, res) => {
+app.get('/download', async (req, res) => {
   const url = req.query.url;
 
   // 检查URL是否是GitHub项目链接
@@ -89,6 +89,7 @@ app.get('/download', logRequest, async (req, res) => {
     res.status(500).json({ error: 'Failed to save GitHub project' });
   }
 });
+
 
 
 function isGitHubUrl(url) {
