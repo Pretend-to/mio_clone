@@ -12,6 +12,19 @@ cron.schedule('0 0 * * *', () => {
   clearAllZipFiles();
 });
 
+
+app.get('/download/:filename', (req, res) => {
+  const filename = req.params.filename;
+  const filePath = `./projects/${filename}`;
+
+  res.download(filePath, (err) => {
+    if (err) {
+      console.error('下载文件时发生错误：', err);
+      res.status(500).send('下载文件时发生错误');
+    }
+  });
+});
+
 app.get('/download', async (req, res) => {
   const url = req.query.url;
 
@@ -25,7 +38,7 @@ app.get('/download', async (req, res) => {
     const saveresult = await saveGitHubProject(url);
     const filesize = saveresult.fileSize;
     const filename = saveresult.filename;
-    const downloadLink = await makeDirectUrl(filename);
+    const downloadLink = await makeUrl(filename);
     res.json({ filesize, downloadLink });
   } catch (error) {
     console.error(error);
@@ -39,31 +52,8 @@ function isGitHubUrl(url) {
   return url.startsWith('https://github.com/');
 }
 
-
-async function makeDirectUrl(filename) {
-  const response = await fetch("https://drive.fcip.xyz/api/short-link/batch/generate", {
-    "headers": {
-      "accept": "application/json, text/plain, */*",
-      "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-      "axios-request": "true",
-      "content-type": "application/json;charset=UTF-8;",
-      "sec-ch-ua": "\"Microsoft Edge\";v=\"113\", \"Chromium\";v=\"113\", \"Not-A.Brand\";v=\"24\"",
-      "sec-ch-ua-mobile": "?0",
-      "sec-ch-ua-platform": "\"Windows\"",
-      "sec-fetch-dest": "empty",
-      "sec-fetch-mode": "cors",
-      "sec-fetch-site": "same-origin",
-      "zfile-token": "0d1a2d86-1cae-415c-9af6-90201261f293",
-      "cookie": "SRCHHPGUSR=cdxtone=Precise&cdxtoneopts=h3precise,clgalileo,gencontentv3",
-      "Referer": "https://drive.fcip.xyz/6",
-      "Referrer-Policy": "same-origin"
-    },
-    "body": `{"storageKey":"6","paths":["/${filename}"]}`,
-    "method": "POST"
-  });
-
-  const data = await response.json();
-  const shortLink = data.data[0].pathLink;
+async function makeUrl(filename) {
+  const shortLink = `https://api.fcip.xyz/git/download/${filename}`
   return shortLink;
 }
 
