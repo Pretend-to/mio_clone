@@ -12,20 +12,64 @@ cron.schedule('0 0 * * *', () => {
   clearAllZipFiles();
 });
 
+// 中间件函数
+function logRequest(req, res, next) {
+  const startTime = new Date(); // 记录开始时间
 
-app.get('/download/:filename', (req, res) => {
+  // 获取请求的 IP 地址
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+  // 记录请求开始的日志
+  console.log(`[${new Date()}] IP 地址 ${ip} 发起了请求：${req.method} ${req.originalUrl}`);
+
+  // 在响应结束后记录请求结束的日志
+  res.on('finish', () => {
+    const endTime = new Date(); // 记录结束时间
+    const requestTime = (endTime - startTime) / 1000; // 计算请求耗时（单位：秒）
+
+    // 记录请求完成的日志
+    console.log(`[${new Date()}] IP 地址 ${ip} 请求完成：${req.method} ${req.originalUrl}`);
+    console.log(`请求耗时：${requestTime} 秒`);
+  });
+
+  next(); // 调用下一个中间件函数或路由处理程序
+}
+
+// 将中间件函数应用到所有路由
+app.use(logRequest);
+
+app.get('/download/:filename',  logRequest, (req, res) => {
   const filename = req.params.filename;
   const filePath = `./projects/${filename}`;
+
+  const startTime = new Date(); // 记录开始时间
+
+  // 获取请求的 IP 地址
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+  // 记录下载开始的日志
+  console.log(`[${new Date()}] IP 地址 ${ip} 正在下载文件 ${filename}`);
 
   res.download(filePath, (err) => {
     if (err) {
       console.error('下载文件时发生错误：', err);
       res.status(500).send('下载文件时发生错误');
+      return;
     }
+
+    const endTime = new Date(); // 记录结束时间
+    const downloadTime = (endTime - startTime) / 1000; // 计算下载耗时（单位：秒）
+    const fileSize = fs.statSync(filePath).size; // 获取文件大小（单位：字节）
+    const downloadSpeed = fileSize / downloadTime; // 计算下载平均速度（单位：字节/秒）
+
+    // 记录下载完成的日志
+    console.log(`[${new Date()}] IP 地址 ${ip} 下载文件 ${filename} 成功`);
+    console.log(`下载耗时：${downloadTime} 秒`);
+    console.log(`下载平均速度：${downloadSpeed} 字节/秒`);
   });
 });
 
-app.get('/download', async (req, res) => {
+app.get('/download', logRequest, async (req, res) => {
   const url = req.query.url;
 
   // 检查URL是否是GitHub项目链接
