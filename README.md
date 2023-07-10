@@ -1,6 +1,6 @@
 # mio 克隆助手
 
-![logo](https://drive.fcip.xyz/directlink/fc1/response.gif)
+![logo](https://drive.fcip.xyz/pd/fc1/response.gif?signature=ba766f74c1a30aa765f55ddd18b1eaea517280c81d444db26af1e4857192ef7a)
 
 
 ## 摘要
