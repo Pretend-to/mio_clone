@@ -7,7 +7,7 @@ export class Mio extends plugin {
       name: '澪',
       dsc: '自己做着玩的',
       event: 'message',
-      priority: 1000,
+      priority: 499,
       rule: [{
         reg: "^clone.*",
         fnc: 'wget_gh'
