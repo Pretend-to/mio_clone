@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "build": "npm install && node app.js"
+    "build": "npm install && node clouflare_app.js"
   },
   "dependencies": {
     "express": "^4.17.1",
