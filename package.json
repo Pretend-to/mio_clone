@@ -4,7 +4,8 @@
   "description": "A simple Express API to download GitHub projects",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "build": "npm install && node app.js"
   },
   "dependencies": {
     "express": "^4.17.1",
