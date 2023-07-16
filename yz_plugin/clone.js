@@ -84,25 +84,31 @@ export class Mio extends plugin {
 
     try {
       const startTime = new Date().getTime(); // 获取开始时间
-      //e.reply(`克隆进行中......`);
+      // e.reply(`克隆进行中......`);
       const response = await fetch(url);
       console.log(response);
-      const data = await response.json();
-
-
-
-      if (data.downloadLink) {
-        const zipsize = await this.get_size(data.filesize);
-        const endTime = new Date().getTime(); // 获取结束时间
-        const clonetime = (endTime - startTime) / 1000; // 计算耗时，单位为秒
-
-        e.reply(`克隆完成!文件大小${zipsize},耗时${clonetime}秒。复制链接到浏览器即可加速下载,有效期24h。\n${data.downloadLink}`, false);
+    
+      if (response.ok) {
+        const data = await response.json();
+    
+        if (data.downloadLink) {
+          const zipsize = await this.get_size(data.filesize);
+          const endTime = new Date().getTime(); // 获取结束时间
+          const clonetime = (endTime - startTime) / 1000; // 计算耗时，单位为秒
+    
+          e.reply(`克隆完成! 文件大小${zipsize}，耗时${clonetime}秒。复制链接到浏览器即可加速下载，有效期24h。\n${data.downloadLink}`, false);
+        } else {
+          e.reply('未知错误！错误原因：\n' + JSON.stringify(data));
+        }
+        
       } else {
-        e.reply('返回下载链接失败！错误原因：\n' + JSON.stringify(data));
+        const statusText = response.statusText;
+        e.reply('连接api接口失败！错误原因：' + statusText);
       }
     } catch (error) {
       console.error('连接api接口失败！错误原因：', error);
-      e.reply('返回下载链接失败！错误原因\n' + error);
+      e.reply('返回下载链接失败！错误原因：\n' + error);
     }
+    
   }
 }
