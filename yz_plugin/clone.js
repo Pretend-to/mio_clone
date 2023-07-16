@@ -1,5 +1,6 @@
 import plugin from '../../lib/plugins/plugin.js';
 import fetch from 'node-fetch';
+import WebSocket from 'ws';
 
 export class Mio extends plugin {
   constructor(e) {
@@ -52,6 +53,7 @@ export class Mio extends plugin {
 
   async wget_gh(e) {
     // console.log(e.msg);
+    const ws = new WebSocket('ws://104.168.68.91:4098');
     let GitHuburl = e.msg.replace(/^clone\s*(https?:\/\/.*)/g, "$1");
     let pure_url = await this.getPureAddress(GitHuburl);
     let url = `https://api.fcip.xyz/git/download?url=${pure_url}`;
@@ -79,36 +81,35 @@ export class Mio extends plugin {
       console.error('解析github项目失败！错误原因:\n', error);
       e.reply('解析github项目失败！错误原因:\n' + error);
     }
-
-    //e.reply(segment.image(`https://opengraph.githubassets.com/Pretend-to/${path}`))
-
-    try {
-      const startTime = new Date().getTime(); // 获取开始时间
+    
+    ws.on('open', () => {
+      console.log('WebSocket 连接已建立');    
       // e.reply(`克隆进行中......`);
-      const response = await fetch(url);
-      console.log(response);
-    
-      if (response.ok) {
-        const data = await response.json();
-    
-        if (data.downloadLink) {
-          const zipsize = await this.get_size(data.filesize);
-          const endTime = new Date().getTime(); // 获取结束时间
-          const clonetime = (endTime - startTime) / 1000; // 计算耗时，单位为秒
-    
-          e.reply(`克隆完成! 文件大小${zipsize}，耗时${clonetime}秒。复制链接到浏览器即可加速下载，有效期24h。\n${data.downloadLink}`, false);
-        } else {
-          e.reply('未知错误！错误原因：\n' + JSON.stringify(data));
-        }
-        
+      const request = {
+        url: pure_url, // 替换为实际的 GitHub 项目 URL
+      };
+      
+      // 发送请求消息
+      ws.send(JSON.stringify(request));
+    });
+
+     // 监听消息接收事件
+    ws.on('message', (message) => {
+      console.log('收到响应:', message);
+
+      // 解析响应消息
+      const response = JSON.parse(message);
+
+      // 处理响应数据
+      if (response.error) {
+        console.error('请求失败:', response.error);
       } else {
-        const statusText = response.statusText;
-        e.reply('连接api接口失败！错误原因：' + statusText);
+        console.log('文件大小:', response.filesize);
+        console.log('下载链接:', response.downloadLink);
       }
-    } catch (error) {
-      console.error('连接api接口失败！错误原因：', error);
-      e.reply('返回下载链接失败！错误原因：\n' + error);
-    }
-    
+
+    // 关闭 WebSocket 连接
+      ws.close();
+    });
   }
 }
