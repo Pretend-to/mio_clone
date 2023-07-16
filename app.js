@@ -211,6 +211,6 @@ function clearAllZipFiles() {
   });
 }
 
-app.listen(port, () => {
+app.listen(http_port, () => {
   console.log(`Download server listening at http://localhost:${http_port} \nWebSocket server listening at ws://localhost:${ws_port} `);
 });
