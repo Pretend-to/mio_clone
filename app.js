@@ -109,9 +109,9 @@ wss.on('connection', (ws) => {
       console.error(error);
       ws.send(JSON.stringify({ error: 'Failed to save GitHub project' })); // 发送错误响应给客户端
     }
-
     // 关闭连接
     ws.close();
+    console.log('WebSocket 连接关闭');
   });
 });
 
