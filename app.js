@@ -3,9 +3,13 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const archiver = require('archiver');
 const cron = require('node-cron');
+const WebSocket = require('ws');
 
 const app = express();
-const port = 4099;
+const http_port = 4099;
+const ws_port = 4098;
+
+const wss = new WebSocket.Server({ port: ws_port });
 
 // 设置定时任务，每24小时清除所有压缩包
 cron.schedule('0 0 * * *', () => {
@@ -56,20 +60,10 @@ app.get('/download/:filename', (req, res) => {
       res.status(500).send('下载文件时发生错误');
       return;
     }
-
-    const endTime = new Date(); // 记录结束时间
-    const downloadTime = (endTime - startTime) / 1000; // 计算下载耗时（单位：秒）
-    const fileSize = (fs.statSync(filePath).size) / (1024); // 获取文件大小（单位：kb）
-    const downloadSpeed = fileSize / downloadTime; // 计算下载平均速度（单位：kb/秒）
-
-    // 记录下载完成的日志
-    console.log(`[${endTime}] IP 地址 ${ip} 下载文件 ${filename} 成功`);
-    console.log(`下载耗时：${downloadTime} 秒`);
-    console.log(`下载平均速度：${downloadSpeed} kb/秒`);
   });
 });
 
-app.get('/download', async (req, res) => {
+/* app.get('/download', async (req, res) => {
   const url = req.query.url;
 
   // 检查URL是否是GitHub项目链接
@@ -88,8 +82,38 @@ app.get('/download', async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Failed to save GitHub project' });
   }
-});
+}); */
 
+wss.on('connection', (ws) => {
+  console.log('WebSocket 连接已建立');
+
+  // 在收到请求后发送 JSON 文件
+  ws.on('message', async (message) => {
+    console.log('收到请求:', message);
+
+    try {
+      const { url } = JSON.parse(message); // 解析消息获取 GitHub 项目 URL
+      // 检查URL是否是GitHub项目链接
+      if (!isGitHubUrl(url)) {
+        ws.send(JSON.stringify({ error: 'Failed to save GitHub project' }));
+        ws.close();
+      }else{
+        const saveresult = await saveGitHubProject(url);
+        const filesize = saveresult.fileSize;
+        const filename = saveresult.filename;
+        const downloadLink = await makeUrl(filename);
+        ws.send(JSON.stringify({ filesize, downloadLink })); // 发送响应给客户端
+      }
+
+    } catch (error) {
+      console.error(error);
+      ws.send(JSON.stringify({ error: 'Failed to save GitHub project' })); // 发送错误响应给客户端
+    }
+
+    // 关闭连接
+    ws.close();
+  });
+});
 
 
 function isGitHubUrl(url) {
@@ -188,5 +212,5 @@ function clearAllZipFiles() {
 }
 
 app.listen(port, () => {
-  console.log(`API server listening at http://localhost:${port}`);
+  console.log(`Download server listening at http://localhost:${http_port} \nWebSocket server listening at ws://localhost:${ws_port} `);
 });
