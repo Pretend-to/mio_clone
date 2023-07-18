@@ -80,7 +80,6 @@ export class Mio extends plugin {
     const ws = new WebSocket('ws://104.168.68.91:4098');
     let GitHuburl = e.msg.replace(/^clone\s*(https?:\/\/.*)/g, "$1");
     let pure_url = await this.getPureAddress(GitHuburl);
-    let url = `https://api.fcip.xyz/git/download?url=${pure_url}`;
     let path = pure_url.replace('https://github.com/', '')
     let apiurl = `https://api.github.com/repos/${path}`
 
@@ -106,6 +105,7 @@ export class Mio extends plugin {
       e.reply('解析github项目失败！错误原因:\n' + error);
     }
     
+    const startTime = new Date().getTime(); // 获取开始时间
     ws.on('open', () => {
       console.log('WebSocket 连接已建立');
     });
@@ -122,9 +122,12 @@ export class Mio extends plugin {
     const response = await this.waitForMessage(ws);
     if(response.error)
     {
-      console.log('请求失败:', response.error);
+      e.reply('歇逼，请求失败了:', response.error);
     }else{
-      e.reply(`文件大小: ${await this.get_size(response.filesize)}\n下载链接: ${response.downloadLink}`);          
+      const zipsize = await this.get_size(response.filesize);
+      const endTime = new Date().getTime(); // 获取结束时间
+      const clonetime = (endTime - startTime) / 1000; // 计算耗时，单位为秒
+      e.reply(`克隆完成! 文件大小${zipsize}，耗时${clonetime}秒。复制链接到浏览器即可加速下载，有效期24h。\n${data.downloadLink}`, false);      
     }
 
     ws.on('close', () => {
