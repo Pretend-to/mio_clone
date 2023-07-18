@@ -16,6 +16,30 @@ export class Mio extends plugin {
     });
   }
 
+  async waitForMessage(ws) {
+    return new Promise((resolve, reject) => {
+      ws.on('message', (message) => {
+        console.log('服务器连接成功！'); 
+  
+        // 解析响应消息
+        const response = JSON.parse(message);
+  
+        // 处理响应数据
+        if (response.error) {
+          console.log('请求失败:', response.error);
+          reject(response.error);
+        } else {
+          console.log('文件大小:', response.filesize);
+          console.log('下载链接:', response.downloadLink);
+          resolve(response);
+        }
+  
+        // 关闭 WebSocket 连接
+        ws.close();
+      });
+    });
+  }
+
   async getPureAddress(url) {
     if (url.startsWith("https://")) {
         // 去掉链接中的 "https://" 部分
@@ -83,33 +107,28 @@ export class Mio extends plugin {
     }
     
     ws.on('open', () => {
-      console.log('WebSocket 连接已建立');    
-      // e.reply(`克隆进行中......`);
-      const request = {
-        url: pure_url, // 替换为实际的 GitHub 项目 URL
-      };
-      
-      // 发送请求消息
-      ws.send(JSON.stringify(request));
+      console.log('WebSocket 连接已建立');
     });
 
+    // 发送请求消息
+    const request = {
+      url: pure_url, // 替换为实际的 GitHub 项目 URL
+    };
+
+    // 在 WebSocket 连接成功后发送请求消息
+    ws.send(JSON.stringify(request));
+ 
      // 监听消息接收事件
-    ws.on('message', (message) => {
-      console.log('收到响应:', message);
+    const response = await this.waitForMessage(ws);
+    if(response.error)
+    {
+      console.log('请求失败:', response.error);
+    }else{
+      e.reply(`文件大小: ${await this.get_size(response.filesize)}\n下载链接: ${response.downloadLink}`);          
+    }
 
-      // 解析响应消息
-      const response = JSON.parse(message);
-
-      // 处理响应数据
-      if (response.error) {
-        console.error('请求失败:', response.error);
-      } else {
-        console.log('文件大小:', response.filesize);
-        console.log('下载链接:', response.downloadLink);
-      }
-
-    // 关闭 WebSocket 连接
-      ws.close();
+    ws.on('close', () => {
+      console.log('WebSocket 连接已关闭');
     });
   }
 }
