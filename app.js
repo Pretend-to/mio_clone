@@ -4,15 +4,16 @@ const fs = require('fs');
 const archiver = require('archiver');
 const cron = require('node-cron');
 const WebSocket = require('ws');
-
 const app = express();
+
+const download_url = 'https://api.fcip.xyz/git/download/'
 const http_port = 4099;
 const ws_port = 4098;
 
 const wss = new WebSocket.Server({ port: ws_port });
 
-// 设置定时任务，每24小时清除所有压缩包
-cron.schedule('0 0 * * *', () => {
+// 设置定时任务，每0.5小时清除所有压缩包
+cron.schedule('*/30 * * * *', () => {
   clearAllZipFiles();
 });
 
@@ -63,26 +64,6 @@ app.get('/download/:filename', (req, res) => {
   });
 });
 
-/* app.get('/download', async (req, res) => {
-  const url = req.query.url;
-
-  // 检查URL是否是GitHub项目链接
-  if (!isGitHubUrl(url)) {
-    return res.status(400).json({ error: 'Invalid GitHub URL' });
-  }
-
-  try {
-    // 保存GitHub项目到本地
-    const saveresult = await saveGitHubProject(url);
-    const filesize = saveresult.fileSize;
-    const filename = saveresult.filename;
-    const downloadLink = await makeUrl(filename);
-    res.json({ filesize, downloadLink });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to save GitHub project' });
-  }
-}); */
 
 wss.on('connection', (ws) => {
   console.log('WebSocket 连接已建立');
@@ -122,7 +103,8 @@ function isGitHubUrl(url) {
 }
 
 async function makeUrl(filename) {
-  const shortLink = `https://api.fcip.xyz/git/download/${filename}`
+  //const shortLink = `https://api.fcip.xyz/git/download/${filename}`
+  const shortLink = `${download_url}${filename}`
   return shortLink;
 }
 
