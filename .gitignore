@@ -1,2 +1,4 @@
 node_modules/
 pnpm-lock.yaml
+linux_cli/res/
+win64_cli/res/
