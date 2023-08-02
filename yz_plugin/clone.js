@@ -127,7 +127,7 @@ export class Mio extends plugin {
       const zipsize = await this.get_size(response.filesize);
       const endTime = new Date().getTime(); // 获取结束时间
       const clonetime = (endTime - startTime) / 1000; // 计算耗时，单位为秒
-      e.reply(`克隆完成! 文件大小${zipsize}，耗时${clonetime}秒。复制链接到浏览器即可加速下载，有效期24h。\n${data.downloadLink}`, false);      
+      e.reply(`克隆完成! 文件大小${zipsize}，耗时${clonetime}秒。复制链接到浏览器即可加速下载，有效期24h。\n${response.downloadLink}`, false);      
     }
 
     ws.on('close', () => {
